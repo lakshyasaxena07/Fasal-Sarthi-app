@@ -1,0 +1,21 @@
+# Python / Flask Backend
+fasal_sarthi_backend/fasal_sarthi_env/
+fasal_sarthi_backend/__pycache__/
+fasal_sarthi_backend/*.pyc
+fasal_sarthi_backend/.env
+fasal_sarthi_backend/firebase-service-account.json # CRITICAL: Keep secrets out!
+
+# React / Vite Frontend
+fasal_sarthi_frontend/node_modules/
+fasal_sarthi_frontend/dist/
+fasal_sarthi_frontend/.env*
+fasal_sarthi_frontend/.DS_Store
+fasal_sarthi_frontend/npm-debug.log*
+fasal_sarthi_frontend/yarn-debug.log*
+fasal_sarthi_frontend/yarn-error.log*
+
+# IDE / OS specific
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
