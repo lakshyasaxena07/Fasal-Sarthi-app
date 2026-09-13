@@ -1,11 +1,11 @@
 // src/pages/CropRecPage.jsx
 import React, { useState } from "react";
-import { useTranslation } from 'react-i18next'; // <-- Naya import
-import axios from "../api/axiosInstance";
-import i18n from '../i18n'; // <-- i18n import karein
+import { useTranslation } from 'react-i18next';
+import { cropApi, chatbotApi } from "../api";
+import i18n from '../i18n';
 import { useSoilData } from '../Context/SoilProvider';
 
-import ReactMarkdown from "react-markdown"; // For formatting AI advice
+import ReactMarkdown from "react-markdown";
 import {
   LuWheat,
   LuLoader,
@@ -16,13 +16,10 @@ import {
   LuMapPin,
   LuAtom,
   LuDroplet,
-  LuThermometer, // Ensure LuThermometer is imported
+  LuThermometer,
   LuSparkles,
-  LuCheck, // Added Check icon
+  LuCheck,
 } from "react-icons/lu";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 // --- Reusable Input Field Component (Translated) ---
 const InputField = ({
@@ -359,17 +356,14 @@ function CropRecPage() {
     }
 
     try {
-      console.log("Sending payload:", payload);
-      const response = await axios.post(
-        `${API_BASE_URL}/recommend_crop`,
-        payload
-      );
-      setResult(response.data.recommended_crop);
+      const data = await cropApi.recommendCrop(payload);
+      setResult(data.recommended_crop);
     } catch (err) {
       console.error("Crop Rec API Error:", err);
       const errorMsg =
+        err.userMessage ||
         err.response?.data?.error ||
-        t('crop_rec_error_recommendation_failed'); // Translated error
+        t('crop_rec_error_recommendation_failed');
       setError(errorMsg);
     } finally {
       setIsLoading(false);
@@ -384,22 +378,18 @@ function CropRecPage() {
     setError(null);
     setAiAdvice(null);
 
-    // 3. Prompt ko t() function se generate karein
     const prompt = t('crop_rec_advice_prompt', { cropName: result });
-    
-    // 4. Current language ko fetch karein
-    const currentLanguage = i18n.language; // Yeh 'en' ya 'hi' dega
+    const currentLanguage = i18n.language;
 
     try {
-      // 5. API call mein 'language' aur 'message' (translated prompt) bhejें
-      const response = await axios.post(`${API_BASE_URL}/sarthi_ai_chat`, {
+      const data = await chatbotApi.sendMessage({
         message: prompt,
-        language: currentLanguage // <-- Naya data bhej rahe hain
+        language: currentLanguage,
       });
-      setAiAdvice(response.data.response);
+      setAiAdvice(data.response);
     } catch (err) {
       console.error("AI Advice API Error:", err);
-      setError(t('crop_rec_error_advice_fetch')); // Yeh key pehle se hai
+      setError(err.userMessage || t('crop_rec_error_advice_fetch'));
       setAiAdvice(null);
     } finally {
       setIsAdviceLoading(false);

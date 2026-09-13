@@ -1,21 +1,14 @@
 // src/pages/FertilizerRecPage.jsx
 import React, { useState, useEffect } from "react";
-import { useTranslation } from 'react-i18next'; // <-- Naya import
-import axios from "../api/axiosInstance";
-// [--- SOIL CONTEXT FIX (2) ---]
-// Hamara naya Soil context hook import karein
+import { useTranslation } from 'react-i18next';
+import { fertilizerApi } from "../api";
 import { useSoilData } from '../Context/SoilProvider';
-// [--- END FIX ---]
 import {
   LuFlaskConical,
   LuLoader,
   LuTriangleAlert as LuAlertTriangle,
   LuSearch,
 } from "react-icons/lu";
-
-// API Base URL (Aapke paas pehle se hai)
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 // --- Reusable Input Field Component (Translated) ---
 const InputField = ({
@@ -202,18 +195,12 @@ function FertilizerRecPage() {
     }
 
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/recommend_fertilizer`,
-        payload
-      );
-      setResult(response.data.recommended_fertilizer);
+      const data = await fertilizerApi.recommendFertilizer(payload);
+      setResult(data.recommended_fertilizer);
     } catch (err) {
       console.error("Fertilizer API Error:", err);
-      if (err.response && err.response.data.error) {
-        setError(err.response.data.error);
-      } else {
-        setError(t('fert_rec_error_connection')); // Translated error
-      }
+      const errorMsg = err.userMessage || err.response?.data?.error || t('fert_rec_error_connection');
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }

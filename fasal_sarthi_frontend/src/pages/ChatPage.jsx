@@ -1,16 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import axios from "../api/axiosInstance";
+import { chatbotApi } from "../api";
 import ReactMarkdown from "react-markdown";
-import { useTranslation } from 'react-i18next'; // <-- Naya Import
+import { useTranslation } from 'react-i18next';
 import {
   LuBot,
   LuUser,
   LuSend,
   LuLoader,
 } from "react-icons/lu";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 // --- Modern Chat Bubble Component (Translated) ---
 const ChatBubble = ({ message, role }) => {
@@ -127,13 +124,12 @@ function ChatPage() {
     setChatHistory(prev => [...prev, { role: "bot", message: "...thinking..." }]);
 
     try {
-      // Send NEW message, prepared HISTORY, aur current LANGUAGE
-      const response = await axios.post(`${API_BASE_URL}/sarthi_ai_chat`, {
+      const data = await chatbotApi.sendMessage({
         message: userMessage,
         history: historyToSend,
-        language: currentLanguage, // <-- Naya data bhej rahe hain
+        language: currentLanguage,
       });
-      const aiMessage = response.data.response;
+      const aiMessage = data.response;
 
       // Replace thinking message with actual response in UI
       setChatHistory((prev) => {

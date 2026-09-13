@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useRef, Fragment } from "react";
-import { useTranslation } from "react-i18next"; // <-- 1. Naya import
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useDropzone } from "react-dropzone";
-import axios from "../api/axiosInstance";
+import { diseaseApi, chatbotApi } from "../api";
 import ReactMarkdown from "react-markdown";
 import {
   LuCloudUpload,
@@ -14,10 +14,6 @@ import {
   LuCheck,
   LuCamera,
 } from "react-icons/lu";
-
-// API Base URL (Aapke paas pehle se hai)
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 // --- 1. Result Display Component (Translated) ---
 const ResultDisplay = ({ resultData, cureData, onGetCure, isCureLoading }) => {
@@ -124,10 +120,18 @@ function ScanPage() {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  const handleFileChange = (file) => {
+  // Clean up Object URL when preview changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
+  const handleFileChange = useCallback((file) => {
     // Kadam 1: Check karein ki file hai (user ne 'Cancel' nahi dabaya)
     if (!file) {
-      // Agar file nahi hai, input ko reset karein aur return
       if (fileInputRef.current) fileInputRef.current.value = null;
       if (cameraInputRef.current) cameraInputRef.current.value = null;
       return;
@@ -135,34 +139,34 @@ function ScanPage() {
 
     // Kadam 2: Check karein ki file image hai
     if (file.type.startsWith("image/")) {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
       setSelectedFile(file);
       setPreview(URL.createObjectURL(file));
       setResult(null);
       setError(null);
       setCure(null);
     } else {
-      // Agar file hai, lekin image nahi hai (jaise PDF)
       setError(t("scan_error_invalid_file"));
     }
 
-    // [--- ANDROID FIX ---]
-    // Dono inputs ko force-reset karein, taaki agla click
-    // (bhaley hi same file ho) 'onChange' ko trigger kare.
     if (fileInputRef.current) {
       fileInputRef.current.value = null;
     }
     if (cameraInputRef.current) {
       cameraInputRef.current.value = null;
     }
-    // [--- END FIX ---]
-  };
+  }, [preview, t]);
 
   const onDrop = useCallback(
     (acceptedFiles) => {
-      handleFileChange(acceptedFiles[0]);
+      if (acceptedFiles && acceptedFiles.length > 0) {
+        handleFileChange(acceptedFiles[0]);
+      }
     },
-    [t]
-  ); // Add 't' as dependency
+    [handleFileChange]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -181,24 +185,24 @@ function ScanPage() {
   };
 
   const handleClearFile = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
     setSelectedFile(null);
     setPreview(null);
     setResult(null);
     setError(null);
     setCure(null);
 
-    // [--- ANDROID FIX (in Clear) ---]
-    // Jab user 'X' dabaye, tab bhi inputs ko 'null' par reset karein.
     if (fileInputRef.current) {
       fileInputRef.current.value = null;
     }
     if (cameraInputRef.current) {
       cameraInputRef.current.value = null;
     }
-    // [--- END FIX ---]
   };
 
-  // --- API CALL 1: Start Scan (Translated Error) ---
+  // --- API CALL 1: Start Scan ---
   const handleSubmitScan = async () => {
     if (!selectedFile) return;
     setIsLoadingScan(true);
@@ -210,23 +214,17 @@ function ScanPage() {
     formData.append("file", selectedFile);
 
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/predict_disease`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      setResult(response.data);
+      const data = await diseaseApi.predictDisease(formData);
+      setResult(data);
     } catch (err) {
-      console.error(err);
-      setError(t("scan_error_connection")); // Translated error
+      console.error("Scan error:", err);
+      setError(err.userMessage || t("scan_error_connection"));
     } finally {
       setIsLoadingScan(false);
     }
   };
 
-  // --- API CALL 2: Get Cure (UPDATED) ---
+  // --- API CALL 2: Get Cure ---
   const handleGetCure = async () => {
     if (!result || !result.predicted_disease) return;
     setIsCureLoading(true);
@@ -234,23 +232,18 @@ function ScanPage() {
     setCure(null);
 
     const diseaseName = result.predicted_disease.replace(/_/g, " ");
-
-    // 3. Prompt ko t() function se generate karein
     const prompt = t("scan_cure_prompt", { diseaseName: diseaseName });
-
-    // 4. Current language ko fetch karein
-    const currentLanguage = i18n.language; // Yeh 'en' ya 'hi' dega
+    const currentLanguage = i18n.language;
 
     try {
-      // 5. API call mein 'language' aur 'message' (translated prompt) bhejें
-      const response = await axios.post(`${API_BASE_URL}/sarthi_ai_chat`, {
+      const data = await chatbotApi.sendMessage({
         message: prompt,
-        language: currentLanguage, // <-- Naya data bhej rahe hain
+        language: currentLanguage,
       });
-      setCure(response.data.response);
+      setCure(data.response);
     } catch (err) {
-      console.error(err);
-      setError(t("scan_error_cure_fetch")); // Translated error
+      console.error("Cure fetch error:", err);
+      setError(err.userMessage || t("scan_error_cure_fetch"));
       setCure(null);
     } finally {
       setIsCureLoading(false);

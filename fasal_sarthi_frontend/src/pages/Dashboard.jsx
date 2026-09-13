@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"; // <-- useEffect aur useState add karein
+import React from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useWeather } from "../Context/WeatherContext";

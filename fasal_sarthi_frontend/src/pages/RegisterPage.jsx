@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSupabaseClient } from "@supabase/auth-helpers-react"; // Auth hook
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   LuLeaf,
   LuLoader,
@@ -14,7 +14,6 @@ import {
 function RegisterPage() {
   const { t } = useTranslation();
   const supabase = useSupabaseClient(); // Supabase client ko access karein
-  const navigate = useNavigate();
   // [--- EYE ICON FIX (3) ---]
   // Password dikhane ke liye naya state
   const [showPassword, setShowPassword] = useState(false);

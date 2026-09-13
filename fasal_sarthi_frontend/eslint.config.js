@@ -24,6 +24,18 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+    },
+  },
+  {
+    files: ['src/Context/**/*.{js,jsx}'],
+    rules: {
+      // Co-locating Context Providers with their consumer hooks (e.g. useUserProfile with UserProvider)
+      // is an intentional React architecture pattern. Fast Refresh gracefully remounts the subtree on context edits.
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])

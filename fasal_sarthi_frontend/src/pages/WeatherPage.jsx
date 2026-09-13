@@ -1,18 +1,11 @@
-// src/pages/WeatherPage.jsx
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next'; // <-- 1. Naya import
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useWeather } from '../Context/WeatherContext';
 import {
   LuSearch, LuLoader, LuTriangleAlert as LuAlertTriangle,
   LuWind, LuDroplet, LuMapPin,
   LuSunrise, LuSunset, LuEye, LuGauge, LuCloud, LuNavigation, LuUmbrella
 } from 'react-icons/lu';
-
-// Helper function (Ismein koi change nahi)
-const getWindDirectionRotation = (deg) => {
-  if (typeof deg !== 'number') return 'rotate(180deg)';
-  return `rotate(${deg}deg)`;
-};
 
 // --- Detail Item Component (Translated) ---
 const DetailItem = ({ icon, label, value, unit }) => {
@@ -36,9 +29,9 @@ const DetailItem = ({ icon, label, value, unit }) => {
 
 // --- Main Weather Page Component (Translated) ---
 function WeatherPage() {
-  const { t } = useTranslation(); // <-- 2. Main hook ko yahaan use karein
+  const { t } = useTranslation();
   const [searchCity, setSearchCity] = useState('');
-  const { weatherData, isLoading, error: contextError, fetchWeather, selectedCity } = useWeather();
+  const { weatherData, isLoading, error: contextError, fetchWeather } = useWeather();
   const [geoError, setGeoError] = useState(null);
 
   // Handle manual city search

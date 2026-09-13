@@ -40,7 +40,7 @@ const CropCard = ({ fieldName, cropName, stage, health }) => {
 // --- Main My Crops Page ---
 function MyCropsPage() {
   // We'll use dummy data for now. Later, this will come from a backend.
-  const [crops, setCrops] = useState([
+  const [crops] = useState([
     { id: 1, fieldName: 'Khet 1 (Uttar)', cropName: 'Gehoon (Wheat)', stage: 'Flowering', health: 'Healthy' },
     { id: 2, fieldName: 'Bagicha (Paschim)', cropName: 'Tamatar (Tomato)', stage: 'Fruiting', health: 'Needs Attention' },
     { id: 3, fieldName: 'Nadi Kinara', cropName: 'Chawal (Rice)', stage: 'Vegetative', health: 'Healthy' },

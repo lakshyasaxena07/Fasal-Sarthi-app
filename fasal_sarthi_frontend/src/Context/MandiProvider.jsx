@@ -1,52 +1,62 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from '../api/axiosInstance'; // Hamara 'smart' axios
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { useUser } from '@supabase/auth-helpers-react';
+import { mandiApi } from '../api';
 
-// 1. Naya Context banayein
 const MandiContext = createContext(null);
 
-// 2. Provider component banayein
 export const MandiProvider = ({ children }) => {
-  const [mandiData, setMandiData] = useState(null); // Yeh data save rakhega
-  const [isMandiLoading, setIsMandiLoading] = useState(true);
+  const user = useUser();
+  const [mandiData, setMandiData] = useState(null);
+  const [isMandiLoading, setIsMandiLoading] = useState(false);
   const [mandiError, setMandiError] = useState(null);
 
-  // 3. Yeh useEffect sirf ek baar chalega (app load hone par)
-  useEffect(() => {
-    const fetchFavoriteMandiPrice = async () => {
-      setIsMandiLoading(true);
+  const fetchFavoriteMandiPrice = useCallback(async () => {
+    if (!user) {
+      setMandiData(null);
       setMandiError(null);
-      try {
-        // Hum 'Wheat' (MP) ka data dashboard ke liye laa rahe hain
-        const payload = { state: "Madhya Pradesh", commodity: "Wheat" };
-        const response = await axios.post('/get_mandi_prices', payload);
-        
-        if (response.data && response.data.length > 0) {
-          setMandiData(response.data[0]); // Sirf pehla record save karein
-        } else {
-          setMandiData(null); // Koi record nahi mila
-        }
-      } catch (error) {
-        console.error("Failed to fetch favorite mandi price (Global):", error);
-        setMandiError(error.message);
-      } finally {
-        setIsMandiLoading(false);
-      }
-    };
-    
-    fetchFavoriteMandiPrice();
-  }, []); // <-- Khaali array ka matlab hai: "Sirf 1 baar chalo"
+      setIsMandiLoading(false);
+      return;
+    }
 
-  // 4. Data ko poore app ke saath share karein
+    setIsMandiLoading(true);
+    setMandiError(null);
+    try {
+      const payload = { state: "Madhya Pradesh", commodity: "Wheat" };
+      const data = await mandiApi.fetchMandiPrices(payload);
+
+      if (data && data.length > 0) {
+        setMandiData(data[0]);
+      } else {
+        setMandiData(null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch favorite mandi price (Global):", error);
+      setMandiError(error.userMessage || error.message || "Failed to fetch mandi price");
+    } finally {
+      setIsMandiLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchFavoriteMandiPrice();
+    } else {
+      setMandiData(null);
+      setMandiError(null);
+      setIsMandiLoading(false);
+    }
+  }, [user, fetchFavoriteMandiPrice]);
+
   const value = {
     mandiData,
     isMandiLoading,
-    mandiError
+    mandiError,
+    refreshMandiData: fetchFavoriteMandiPrice,
   };
 
   return <MandiContext.Provider value={value}>{children}</MandiContext.Provider>;
 };
 
-// 5. Ek custom hook banayein taaki data aasani se mil sake
 export const useMandiData = () => {
   const context = useContext(MandiContext);
   if (context === undefined) {

@@ -1,0 +1,41 @@
+{
+  "inputs": {
+    "disease_test_image": "corn_blight.jpeg",
+    "crop_input": {
+      "soil_ph": 6.5,
+      "nitrogen_kg_ha": 80.0,
+      "phosphorus_kg_ha": 40.0,
+      "potassium_kg_ha": 40.0,
+      "annual_rainfall_mm": 1200.0,
+      "avg_temp_c": 26.0,
+      "avg_humidity_pct": 80.0,
+      "soil_type": "Black (Vertisol)",
+      "irrigation_type": "Groundwater",
+      "previous_crop": "Wheat"
+    },
+    "fertilizer_input": {
+      "Temparature": 28.0,
+      "Humidity": 65.0,
+      "Moisture": 45.0,
+      "Nitrogen": 35.0,
+      "Potassium": 15.0,
+      "Phosphorous": 20.0,
+      "Soil_Type": "Sandy",
+      "Crop_Type": "Maize"
+    }
+  },
+  "outputs": {
+    "disease": {
+      "predicted_disease": "Corn__Blight",
+      "confidence": "92.14%",
+      "predicted_class_index": 0,
+      "raw_confidence_float": 0.9213671088218689
+    },
+    "crop": {
+      "recommended_crop": "Sabziyaan"
+    },
+    "fertilizer": {
+      "recommended_fertilizer": "17-17-17"
+    }
+  }
+}

@@ -17,8 +17,7 @@ function CreateProfilePage() {
 
   // [--- FIX ---]
   // Profile data fetch karein
-  const { profile, profileLoading } = useUserProfile();
-  // [--- END FIX ---]
+  const { profile, profileLoading, updateProfileState } = useUserProfile();
 
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
@@ -53,11 +52,12 @@ function CreateProfilePage() {
       }
 
       console.log('Profile created successfully!');
+      updateProfileState({
+        full_name: fullName,
+        username: username,
+      });
       setLoading(false);
-      
-      // Page ko reload karein taaki naya profile data fetch ho
-      // aur ProtectedRoute usse dashboard par bhej de
-      window.location.reload();
+      navigate('/dashboard', { replace: true });
 
     } catch (err) {
       console.error('Profile creation exception:', err);

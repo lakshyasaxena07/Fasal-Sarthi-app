@@ -16,7 +16,7 @@ function EditProfilePage() {
   const { t } = useTranslation();
   const user = useUser();
   const navigate = useNavigate();
-  const { profile, profileLoading } = useUserProfile();
+  const { profile, profileLoading, updateProfileState } = useUserProfile();
 
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
@@ -60,6 +60,10 @@ function EditProfilePage() {
       }
 
       console.log('Profile updated successfully!');
+      updateProfileState({
+        full_name: fullName,
+        username: username,
+      });
       setLoading(false);
       setSuccess(t('profile_update_success'));
 

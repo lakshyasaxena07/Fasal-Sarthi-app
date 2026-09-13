@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from '../api/axiosInstance';
+import { mandiApi } from '../api';
 import { 
   LuLoader, 
   LuTriangleAlert as LuAlertTriangle, 
@@ -53,12 +53,12 @@ function MandiPage() {
       };
       // [--- END FIX ---]
       
-      const response = await axios.post('/get_mandi_prices', payload);
-      setResults(response.data);
+      const data = await mandiApi.fetchMandiPrices(payload);
+      setResults(data || []);
 
     } catch (err) {
       console.error("Mandi fetch error:", err);
-      const errorMessage = err.response?.data?.error || "Failed to fetch prices.";
+      const errorMessage = err.userMessage || err.response?.data?.error || "Failed to fetch prices.";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
